@@ -17,7 +17,11 @@ lazy val scalatest = crossProject(JSPlatform, JVMPlatform)
     moduleName := "discipline-scalatest",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "discipline-core" % disciplineV,
-      "org.scalatestplus" %%% "scalacheck-1-14" % scalatestplusScalacheckV
+    ).map(_.withDottyCompat(scalaVersion.value)),
+    libraryDependencies ++= (if (isDotty.value)
+      Seq("dev.travisbrown" % "scalacheck-1-14_0.22" % "3.1.0.1-20200123-9982f0d-NIGHTLY")
+    else
+      Seq("org.scalatestplus" %%% "scalacheck-1-14" % "3.1.0.1")
     )
   )
   .jsSettings(scalaJSStage in Test := FastOptStage)
@@ -40,13 +44,14 @@ lazy val contributors = Seq(
 )
 
 val disciplineV = "1.0.2"
+val scalatestV = "3.1.1-SNAPSHOT"
 val scalatestplusScalacheckV = "3.1.0.1"
 
 // General Settings
 lazy val commonSettings = Seq(
-  organization := "org.typelevel",
+  organization := "dev.travisbrown",
   scalaVersion := "2.12.10",
-  crossScalaVersions := Seq("2.13.1", scalaVersion.value, "2.11.12"),
+  crossScalaVersions := Seq("2.13.1", scalaVersion.value, "2.11.12", "0.22.0-bin-20200123-9982f0d-NIGHTLY"),
   scalacOptions += "-Yrangepos",
   scalacOptions in (Compile, doc) ++= Seq(
     "-groups",
@@ -95,6 +100,7 @@ lazy val releaseSettings = {
       )
     ).toSeq,
     publishArtifact in Test := false,
+    sources in (Compile, doc) := Seq(),
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     releaseVcsSign := true,
     scmInfo := Some(
